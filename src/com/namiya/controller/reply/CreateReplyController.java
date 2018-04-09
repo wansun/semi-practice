@@ -7,20 +7,23 @@ import javax.servlet.http.HttpSession;
 import com.namiya.controller.Controller;
 import com.namiya.model.NamiyaAnswerVO;
 import com.namiya.model.NamiyaDAO;
-import com.namiya.model.NamiyaUserVO;
 
 public class CreateReplyController implements Controller {
 
 	@Override
 	public String execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		//답변을 등록시키고 그 글의 번호를 반환받아 보여주는 컨트롤러
-		String pTitle=request.getParameter("");
-		String pContent=request.getParameter("");
 		HttpSession session=request.getSession(false);
-		NamiyaUserVO userVO=(NamiyaUserVO) session.getAttribute("");
-		NamiyaAnswerVO answerVO=new NamiyaAnswerVO(pTitle, pContent, userVO);
+		if(session==null||session.getAttribute("userVO")==null){
+			return "redirect:index.jsp";
+		}
+		int pNo=Integer.parseInt(request.getParameter("pno"));
+		String pTitle=request.getParameter("atitle");
+		String pContent=request.getParameter("acontent");
+		NamiyaAnswerVO answerVO=new NamiyaAnswerVO(pNo,pTitle, pContent);
 		NamiyaDAO.getInstance().createReply(answerVO);
-		return null;
+
+		return "dispatcher?command=ReadPostInfo&pNo="+pNo;
 	}
 
 }

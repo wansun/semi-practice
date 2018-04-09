@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import javax.sql.DataSource;
 
@@ -37,11 +38,17 @@ public class NamiyaUserDAO {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
+		StringBuilder sql=new StringBuilder();
 		try {
 			con = dataSource.getConnection();
-			StringBuilder sql = new StringBuilder();
-			sql.append("SELECT nickname, grade");
-			sql.append("FROM namiya_user");
+			sql.append("update namiya_user set logindate=sysdate where id=?");
+			pstmt=con.prepareStatement(sql.toString());
+			pstmt.setString(1, id);
+			pstmt.executeUpdate();
+			sql.delete(0, sql.length());
+			pstmt.close();
+			sql.append("SELECT nickname, grade ");
+			sql.append("FROM namiya_user ");
 			sql.append("WHERE id = ? AND PASSWORD = ?");
 			/*
 			SELECT nickname, grade
@@ -70,7 +77,7 @@ public class NamiyaUserDAO {
 		PreparedStatement pstmt=null;
 		try {
 			con=dataSource.getConnection();
-			String sql="INSERT INTO namiya_user(id, password, nickname ) VALUES('?','?','?')";
+			String sql="INSERT INTO namiya_user(id, password, nickname ) VALUES(?,?,?)";
 			pstmt=con.prepareStatement(sql);
 			pstmt.setString(1, vo.getId());
 			pstmt.setString(2, vo.getPassword());
@@ -81,14 +88,78 @@ public class NamiyaUserDAO {
 		}
 	}//method
 	
-	//회원수정 메서드
-	public void updateUser(NamiyaUserVO vo) {
-		
+	// 임시비밀번호 발송
+	public int tempPassword(String id, String password) throws SQLException {
+		Connection con = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = 0;
+		try {
+			con = dataSource.getConnection();
+			// 아이디가 존재하는지 조회
+			String sql = "SELECT count(*) FROM namiya_user WHERE id = ?";
+			/*
+			 	SELECT id FROM namiya_user WHERE id = ?
+			 */
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1,id);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				result = rs.getInt(1);
+			}
+			pstmt.close();
+			
+			// 비밀번호 수정
+			 sql = "UPDATE namiya_user SET password = ? WHERE id = ?";
+			/*
+				UPDATE namiya_user SET password = ? WHERE id = ?
+			 */
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, password);
+			pstmt.setString(2, id);
+			pstmt.executeUpdate();
+		} finally {
+			closeAll(rs, pstmt, con);
+		}
+		return result;
+	}// method
+	
+	// 회원수정 메서드
+	public void updateUser(NamiyaUserVO vo) throws SQLException {
+		Connection con=null;
+		PreparedStatement pstmt=null;
+		try {
+			con=dataSource.getConnection();
+			String sql="UPDATE namiya_user SET nickname = ?, password = ? WHERE id = ?";
+			/*
+				UPDATE namiya_user SET nickname = ?, password = ? WHERE id = ?
+			 */
+			pstmt=con.prepareStatement(sql);
+			pstmt.setString(1, vo.getNickName());
+			pstmt.setString(2, vo.getPassword());
+			pstmt.setString(3, vo.getId());
+			pstmt.executeUpdate();
+		}finally {
+			closeAll(pstmt, con);
+		}
 	}//method
 	
 	//회원탈퇴 메서드
-	public void deleteUser(String id) {
-		
+	public void deleteUser(String id) throws SQLException {
+		Connection con=null;
+		PreparedStatement pstmt=null;
+		try {
+			con=dataSource.getConnection();
+			String sql="UPDATE namiya_user SET grade = 'd' WHERE id = ?";
+			/*
+				UPDATE namiya_user SET grade = 'd' WHERE id = ?
+			 */
+			pstmt=con.prepareStatement(sql);
+			pstmt.setString(1, id);
+			pstmt.executeUpdate();
+		}finally {
+			closeAll(pstmt, con);
+		}
 	}//method
 	
 	//전체 회원 수 조회 메서드
@@ -110,4 +181,76 @@ public class NamiyaUserDAO {
 		}
 		return count;
 	}//method
+	public ArrayList<NamiyaUserVO> searchUser() throws SQLException {
+		Connection con=null;
+		PreparedStatement pstmt=null;
+		ResultSet rs=null;
+		ArrayList<NamiyaUserVO> list=new ArrayList<NamiyaUserVO>();
+		try {
+			con=dataSource.getConnection();
+			StringBuilder sql=new StringBuilder();
+			sql.append("select id,nickname from namiya_user ");
+			sql.append("where MONTHS_BETWEEN(to_char(sysdate,'yyyymmdd'),to_char(logindate,'yyyymmdd'))>36 ");
+			pstmt=con.prepareStatement(sql.toString());
+			rs=pstmt.executeQuery();
+			while(rs.next()) {
+				list.add(new NamiyaUserVO(rs.getString(1), rs.getString(2)));
+			}
+		}finally {
+			closeAll(rs, pstmt, con);
+		}
+		return list;
+	}
+	public void removeUser(String id) throws SQLException {
+		Connection con=null;
+		PreparedStatement pstmt=null;
+		try {
+			con=dataSource.getConnection();
+			String sql="delete from namiya_user where id=?";
+			pstmt=con.prepareStatement(sql);
+			pstmt.setString(1, id);
+			pstmt.executeUpdate();
+		}finally {
+			closeAll(pstmt, con);
+		}
+	}
+	public int searchUserCount() throws SQLException {
+		Connection con=null;
+		PreparedStatement pstmt=null;
+		ResultSet rs=null;
+		int count=0;
+		try {
+			con=dataSource.getConnection();
+			StringBuilder sql=new StringBuilder();
+			sql.append("select count(*) from namiya_user ");
+			sql.append("where MONTHS_BETWEEN(to_char(sysdate,'yyyymmdd'),to_char(logindate,'yyyymmdd'))>36 ");
+			pstmt=con.prepareStatement(sql.toString());
+			rs=pstmt.executeQuery();
+			if(rs.next()) {
+				count=rs.getInt(1);
+			}
+		}finally {
+			closeAll(rs, pstmt, con);
+		}
+		return count;
+	}
+	public String checkNickname(String nickName) throws SQLException {
+		Connection con=null;
+		PreparedStatement pstmt=null;
+		ResultSet rs=null;
+		String nickname=null;
+		try {
+			con=dataSource.getConnection();
+			String sql="select nickname from namiya_user where nickname=?";
+			pstmt=con.prepareStatement(sql);
+			pstmt.setString(1, nickName);
+			rs=pstmt.executeQuery();
+			if(rs.next()) {
+				nickname=rs.getString(1);
+			}
+		}finally {
+			closeAll(rs, pstmt, con);
+		}
+		return nickname;
+	}
 }

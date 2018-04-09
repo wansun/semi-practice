@@ -1,21 +1,30 @@
 package com.namiya.controller;
 
 import com.namiya.controller.post.CreatePostController;
+import com.namiya.controller.post.CreatePostViewController;
 import com.namiya.controller.post.DeletePostController;
+import com.namiya.controller.post.ReadMyPostInfoController;
 import com.namiya.controller.post.ReadMyPostListController;
 import com.namiya.controller.post.ReadPostInfoController;
 import com.namiya.controller.post.ReadPostListController;
+import com.namiya.controller.post.SearchController;
 import com.namiya.controller.post.UpdatePostController;
+import com.namiya.controller.post.UpdatePostViewController;
 import com.namiya.controller.reply.CreateReplyController;
 import com.namiya.controller.reply.DeleteReplyController;
-import com.namiya.controller.reply.ReadReplyController;
 import com.namiya.controller.reply.UnAnsweredListController;
 import com.namiya.controller.reply.UpdateReplyController;
+import com.namiya.controller.user.AdminPageController;
+import com.namiya.controller.user.CheckIdController;
+import com.namiya.controller.user.CheckNicknameController;
 import com.namiya.controller.user.CreateUserController;
 import com.namiya.controller.user.DeleteUserController;
 import com.namiya.controller.user.LoginController;
-import com.namiya.controller.user.TotalUserCountController;
+import com.namiya.controller.user.LogoutController;
+import com.namiya.controller.user.RemoveUserController;
+import com.namiya.controller.user.TempPasswordController;
 import com.namiya.controller.user.UpdateUserController;
+import com.namiya.controller.user.UpdateUserViewController;
 
 public class HandlerMapping {
 	private static HandlerMapping instance=new HandlerMapping();
@@ -30,16 +39,28 @@ public class HandlerMapping {
 		Controller c=null;
 		if(command.equals("Login")) {
 			c=new LoginController();
+		}else if(command.equals("Logout")) {
+			c=new LogoutController();
+		}else if(command.equals("CheckId")) {
+			c=new CheckIdController();
+		}else if(command.equals("Intro")) {
+			c=new IntroController();
 		}else if(command.equals("CreateUser")) {
 			c=new CreateUserController();
 		}else if(command.equals("UpdateUser")) {
 			c=new UpdateUserController();
+		}else if(command.equals("UpdateUserView")) {
+			c=new UpdateUserViewController();
 		}else if(command.equals("DeleteUser")) {
 			c=new DeleteUserController();
-		}else if(command.equals("TotalUserCount")) {
-			c=new TotalUserCountController();
+		}else if(command.equals("TempPassword")) {
+			c=new TempPasswordController();
+		}else if(command.equals("AdminPage")) {
+			c=new AdminPageController();
 		}else if(command.equals("CreatePost")) {
 			c=new CreatePostController();
+		}else if(command.equals("CreatePostView")) {
+			c=new CreatePostViewController();
 		}else if(command.equals("CreateReply")) {
 			c=new CreateReplyController();
 		}else if(command.equals("ReadPostList")) {
@@ -48,10 +69,12 @@ public class HandlerMapping {
 			c=new ReadMyPostListController();
 		}else if(command.equals("ReadPostInfo")) {
 			c=new ReadPostInfoController();
-		}else if(command.equals("ReadReply")) {
-			c=new ReadReplyController();
+		}else if(command.equals("ReadMyPostInfo")) {
+			c=new ReadMyPostInfoController();
 		}else if(command.equals("UpdatePost")) {
 			c=new UpdatePostController();
+		}else if(command.equals("UpdatePostView")) {
+			c=new UpdatePostViewController();
 		}else if(command.equals("UpdateReply")) {
 			c=new UpdateReplyController();
 		}else if(command.equals("DeletePost")) {
@@ -60,6 +83,12 @@ public class HandlerMapping {
 			c=new DeleteReplyController();
 		}else if(command.equals("UnansweredList")) {
 			c=new UnAnsweredListController();
+		}else if(command.equals("Search")) {
+			c=new SearchController();
+		}else if(command.equals("removeUser")) {
+			c=new RemoveUserController();
+		}else if(command.equals("CheckNickname")) {
+			c=new CheckNicknameController();
 		}
 		return c;
 	}
