@@ -8,6 +8,11 @@ a.post {
 	color: black;
 }
 </style>
+<div class="row img">
+	<div class="col-xs-offset-1 col-xs-9 text-center text-center animated flipInX">
+		<img src="assets/img/board.jpg">
+	</div> <!-- col-xs-offset-1 col-xs-9 text-center -->
+</div> <!-- row img -->
 <table class="table table-hover">
 	<thead>
 		<tr>
@@ -18,33 +23,65 @@ a.post {
 			<th>작성일</th>
 		</tr>
 	</thead>
+	<!-- 게시물 리스트 -->
 	<tbody>
+	<c:forEach var="info" items="${requestScope.listvo.list }">
 		<tr>
-			<td>1</td>
-			<td><span class="label label-danger">진행중</span></td>
-			<td><a class="post" href="#">여기는 제목1~~~</a></td>
-			<td>테스트1</td>
-			<td>2018.03.19</td>
+			<td>${info.pNo}</td>
+			<c:choose><%-- 답변여부 --%>  
+				<c:when test="${info.reply==0 }">				
+					<td><span class="label label-danger">진행중</span></td>
+				</c:when>
+				<c:otherwise>
+					<td><span class="label label-success">답변완료</span></td>
+				</c:otherwise>
+			</c:choose><%-- // 답변여부 --%>					
+			<c:choose><%--회원 비회원 구분 --%>
+				<c:when test="${sessionScope.userVO!=null}"><%-- 회원 --%>								
+					<c:choose>	<%-- 공개 비공개 구분 --%>		
+					<c:when test="${info.lock=='y' }"><%--비공개(y) 글보기 --%>					
+						<c:choose><%--비공개글 권한 --%>
+							<c:when test="${sessionScope.userVO.id == info.userVO.id || sessionScope.userVO.grade == 'a'}"><%--관리자이거나 작성자 본인일때 비공개 볼수 있다  --%>							
+								<td><a class="post" href="${pageContext.request.contextPath}/dispatcher?command=ReadPostInfo&pNo=${info.pNo}">
+								<i class="fas fa-lock"></i>&nbsp;${info.pTitle }</a></td>
+							</c:when><%--// 관리자이거나 본인일때 비공개 글 볼수있다--%>							
+							<c:otherwise>
+								<td><i class="fas fa-lock"></i>&nbsp;${info.pTitle }</td>
+							</c:otherwise>						
+						</c:choose><%--// 비공개글 권한 --%>
+					</c:when><%--// 비공개(y) 글보기 --%>					
+					<c:otherwise><%--공개글 보기 --%>
+						<td><a class="post" href="${pageContext.request.contextPath}/dispatcher?command=ReadPostInfo&pNo=${info.pNo}">
+								${info.pTitle }</a></td>
+					</c:otherwise><%-- // 공개글 보기--%>
+					</c:choose><%-- // 공개 비공개 구분 --%>
+				</c:when><%-- // 회원--%>				
+				<c:otherwise><%--비회원 --%>
+				<c:choose>
+				<c:when test="${info.lock=='y' }"><%--비회원의 비공개(y) 링크 보기 --%>
+				<td><i class="fas fa-lock"></i>&nbsp;${info.pTitle }</td>
+				</c:when>
+				<c:otherwise>
+				<td>${info.pTitle }</td>
+				</c:otherwise>
+				</c:choose>
+				</c:otherwise><%-- // 비회원 --%>
+			</c:choose><%-- // 회원 비회원 구분 --%>						
+			<td>${info.userVO.nickName }</td>
+			<td>${info.pDate}</td>
 		</tr>
-		<tr>
-			<td>2</td>
-			<td><span class="label label-success">완료</span></td>
-			<td><a class="post" href="#">여기는 제목2~~~</a></td>
-			<td>테스트2</td>
-			<td>2018.03.19</td>
-		</tr>
-		<tr>
-			<td>3</td>
-			<td><span class="label label-success">완료</span></td>
-			<td><a href="#" class="post"><i class="fas fa-lock"></i>&nbsp;이거는 비공개글</a></td>
-			<td>테스트3</td>
-			<td>2018.03.19</td>
-		</tr>
+		</c:forEach>
 	</tbody>
 </table>
-<div class="col-sm-10 text-center">
+<!-- 글쓰기 view로 넘어가는 버튼 추가 
+	  로그인하지 않은 사용자에게는 버튼 제공 X -->
+<c:if test="${sessionScope.userVO!=null}">
+	<button type="button" value="글쓰기" class="btn btn-primary btn-xs"
+		onclick="location.href='${pageContext.request.contextPath}/dispatcher?command=CreatePostView'">글쓰기</button>
+</c:if>
+<div class="col-xs-10 text-center">
 	
-	<div class="input-group col-sm-offset-4 col-sm-4">
+	<div class="input-group col-xs-offset-4 col-xs-4">
 		
 		<!-- 검색메뉴 드랍다운 -->
 		<div class="input-group-btn">
@@ -54,35 +91,49 @@ a.post {
 			<ul id="findMenu" class="dropdown-menu">
 				<li><a href="#">제목</a></li>
 				<li><a href="#">작성자</a></li>
-				<li><a href="#">답변여부</a></li>
+				<li><a href="#">내용</a></li>
 				<!-- <li class="divider"></li>
 				<li><a href="#">Separated link</a></li> -->
 			</ul>
 		</div>
 		
 		<!-- 검색폼 -->
-		<input type="text" class="form-control">
+		<%-- 	<form name="searchForm" action="${pageContext.request.contextPath}/dispatcher"> 
+		폼 설정하면 검색폼 모양 흐트러짐 주의!!!
+		
+		 --%>
+		<input type="text" class="form-control" id="keyword" name="keyword">
 		<span class="input-group-btn">
-			<button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
+			<button class="btn btn-primary" type="button" id="findBtn">
+				<i class="fas fa-search"></i>
+			</button>
 		</span>
+		<input type="hidden" name="command" value="Search">
+		<input type="hidden" name="category" value="제목">
 	</div>
-	
-	<script>
-		$(document) .ready(function() {
-			$("#findMenu li").click(function() {
-				$("#menuBtn").html($(this).text()+' <span class="caret"></span>');
-			})
-		})
-	</script>
-	
+
 	<!-- 페이징버튼 -->
 	<ul class="pagination pagination">
-		<li><a href="#">«</a></li>
-		<li class="active"><a href="#">1</a></li>
-		<li><a href="#">2</a></li>
-		<li><a href="#">3</a></li>
-		<li><a href="#">4</a></li>
-		<li><a href="#">5</a></li>
-		<li class="disabled"><a href="#">»</a></li>
+		<%-- 페이징빈 코드 줄여서 변수에 담음 : pb--%>
+		<c:set var="pb" value="${requestScope.listvo.pagingBean}"></c:set>
+		<%--이전 페이지로 돌아가기 --%>
+		<c:if test="${pb.previousPageGroup}">		
+			<li><a href="dispatcher?command=ReadPostList&pageNo=${pb.startPageOfPageGroup-1}">«</a></li>
+		</c:if>
+		<%--페이지그룹 시작번호부터 끝번호 및 현재 페이지 --%>
+		<c:forEach var="page" begin="${pb.startPageOfPageGroup}" end="${pb.endPageOfPageGroup}">
+		<c:choose>
+			<c:when test="${pb.nowPage!=page}">
+				<li><a href="dispatcher?command=ReadPostList&pageNo=${page}">${page}</a></li>
+			</c:when>
+			<c:otherwise>
+				<li class="active"><a href="#">${page}</a></li>
+			</c:otherwise>
+		</c:choose>
+		</c:forEach>
+		<%-- 다음페이지로 넘어가기  --%>
+		<c:if test="${pb.nextPageGroup}">		
+			<li><a href="dispatcher?command=ReadPostList&pageNo=${pb.endPageOfPageGroup+1}">»</a></li>
+		</c:if>
 	</ul>
 </div>

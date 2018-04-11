@@ -7,6 +7,7 @@ CREATE TABLE namiya_user (
    logindate	date	default sysdate,
    grade VARCHAR2(1) DEFAULT 'm' -- 회원상태 여부. 회원:m, 관리자:a, 탈퇴한회원:d 
 );
+alter table namiya_user add(logindate date default sysdate);
 
 -- 답변 읽었는지
 ALTER TABLE namiya_answer ADD (readRe NUMBER DEFAULT 0)
@@ -42,6 +43,8 @@ CREATE TABLE namiya_answer (
     CONSTRAINT fk_namiya_pno FOREIGN KEY(p_no) 
     REFERENCES namiya_post(p_no) ON DELETE CASCADE --  답변이 달린 게시글을 삭제하기위함(참조된테이블도 같이 삭제)
 );
+
+alter table namiya_answer add(readRe number default 0)
 -- **namiya_user**
 -- 관리자 가입
 INSERT INTO namiya_user (id, password, nickname , grade ) 
@@ -51,11 +54,12 @@ delete from namiya_user where id='cloudysunny@gmail.com'
 
 -- 회원 가입
 INSERT INTO namiya_user(id, password, nickname ) 
-VALUES('test@naver.com','123','test'); 
+VALUES('testtest@naver.com','123','test'); 
 
 -- 회원 조회
 SELECT id, password, nickname, grade, logindate
 FROM namiya_user;
+SELECT id,password FROM namiya_user;
 
 --로그인 시 로그인 일자 검색
 update namiya_user set logindate=sysdate where id='test@naver';
@@ -138,3 +142,6 @@ between 1 and 30 order by p_no desc
 -- 답변 읽었는지
 ALTER TABLE namiya_answer ADD (readRe NUMBER DEFAULT 0) -- 안 읽으면 0 읽으면 1로 update
 select * from namiya_answer
+
+update namiya_user set logindate=sysdate where id='a'
+select *from namiya_answer
